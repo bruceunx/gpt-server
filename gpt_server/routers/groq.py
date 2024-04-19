@@ -39,6 +39,8 @@ async def chat(request: Request, prompt: Prompt):
     less_messages = []
     if len(prompt.messages) > 4:
         less_messages = [prompt.messages[0]] + prompt.messages[-3:]
+    else:
+        less_messages = prompt.messages
     for message in less_messages:
         if message.role == "system":
             message.content = message.content.replace("GitHub Copilot",

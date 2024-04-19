@@ -7,3 +7,6 @@ with open(Base / ".person", "r") as f:
     for line in f.readlines():
         key, value = line.split("=")
         APIs[key] = value.strip()
+
+if 'proxy' not in APIs:
+    APIs['proxy'] = None  # type: ignore
