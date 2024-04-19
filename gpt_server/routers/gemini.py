@@ -35,10 +35,12 @@ async def get_content(data):
 
 @router.post("/chat", status_code=200)
 async def chat(request: Request, prompt: Prompt):
-
     contents: list[Any] = []
     sys_message = None
-    for message in prompt.messages:
+    less_messages = []
+    if len(prompt.messages) > 4:
+        less_messages = [prompt.messages[0]] + prompt.messages[-3:]
+    for message in less_messages:
         single_message: dict[str, Any] = {}
         if message.role == "system":
             sys_message = message.content.replace("GitHub Copilot", "Gemini")

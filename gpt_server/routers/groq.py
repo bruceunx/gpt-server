@@ -36,9 +36,12 @@ async def generate_data():
 async def chat(request: Request, prompt: Prompt):
 
     data = {"model": "mixtral-8x7b-32768", "stream": True}
-    for message in prompt.messages:
+    less_messages = []
+    if len(prompt.messages) > 4:
+        less_messages = [prompt.messages[0]] + prompt.messages[-3:]
+    for message in less_messages:
         if message.role == "system":
             message.content = message.content.replace("GitHub Copilot",
                                                       "Groq-mixtral")
-    data["messages"] = [dict(msg) for msg in prompt.messages]
+    data["messages"] = [dict(msg) for msg in less_messages]
     return EventSourceResponse(get_content(data))
