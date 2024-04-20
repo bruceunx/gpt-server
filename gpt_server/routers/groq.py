@@ -35,7 +35,7 @@ async def generate_data():
 @router.post("/chat", status_code=200)
 async def chat(request: Request, prompt: Prompt):
 
-    data = {"model": "mixtral-8x7b-32768", "stream": True}
+    data = {"model": "llama3-70b-8192", "stream": True}
     less_messages = []
     if len(prompt.messages) > 4:
         less_messages = [prompt.messages[0]] + prompt.messages[-3:]
