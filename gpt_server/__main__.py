@@ -11,15 +11,6 @@ def main():
     return {"message": "Welcome to the GPT server!"}
 
 
-# @app.on_event("startup")
-# async def startup():
-#     await DB.connect()
-#
-#
-# @app.on_event("shutdown")
-# async def shutdown():
-#     await DB.disconnect()
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

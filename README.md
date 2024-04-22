@@ -1,17 +1,29 @@
-# Use Gemini and Groq API for Copilot server
+# Use Gemini and Groq(Llama3, Mixtral) and OpenAI for Unary Interface
 
-- setup Gemini and Groq API for Copilot usage
+## Easy Self Host setup for any usage, like CopilotChat.nvim
 
-> like in CopilotChat.nvim
+> Make sure `make` is installed in your system, or your should run command in `Makefile` manually.
 
-## Install Dependencies
-
-```sh
-pip install -r requirements.txt
-```
-
-## Run Server
+## Install Dependencies and Run Server
 
 ```sh
-make
+make run
 ```
+
+## Run in docker
+
+```sh
+make new
+```
+
+## Rebuild docker
+
+```sh
+make rebuild
+```
+
+## If you want to add new Llm servers.
+
+- copy and past file in routers
+- adjust some logic and add
+- add routers to `__main__.py`
