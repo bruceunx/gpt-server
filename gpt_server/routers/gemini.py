@@ -16,6 +16,7 @@ from gpt_server.schemas.prompt import Prompt
 router = APIRouter()
 
 API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:streamGenerateContent?alt=sse&key={APIs['gemini']}"
+API_URL_PRO = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:streamGenerateContent?alt=sse&key={APIs['gemini']}"
 
 
 class Settings(BaseSettings):
@@ -54,7 +55,7 @@ async def rate_limit(rate_limit: int) -> bool:
     return True
 
 
-def handle_request(prompt: Prompt, model: str):
+def handle_request(prompt: Prompt, model: str, url: str):
     contents: list[Any] = []
     sys_message = None
     less_messages = []
@@ -83,7 +84,7 @@ def handle_request(prompt: Prompt, model: str):
         get_content({
             "contents": contents,
             "model": model
-        }))
+        }, url))
 
 
 def check_limit(func):
@@ -98,10 +99,9 @@ def check_limit(func):
     return wrapper
 
 
-# limiter = FastAPILimiter(key_func=GetlavaExtractor())
-async def get_content(data):
+async def get_content(data, url):
     async with aiohttp.ClientSession() as sess:
-        async with sess.post(API_URL, json=data, proxy=APIs["proxy"]) as res:
+        async with sess.post(url, json=data, proxy=APIs["proxy"]) as res:
             async for chunk in res.content:
                 _data = chunk.decode("utf-8")
                 if _data.strip() != "":
@@ -125,9 +125,8 @@ async def get_content(data):
 @router.post("/chat", status_code=200)
 @check_limit
 async def chat(request: Request, prompt: Prompt):
-    return handle_request(prompt, "models/gemini-1.0-pro")
+    return handle_request(prompt, "models/gemini-1.0-pro", API_URL)
 
 
-# @router.post("/chat_pro", status_code=200)
 async def chat_pro(request: Request, prompt: Prompt):
-    return handle_request(prompt, "models/gemini-1.5-pro-latest")
+    return handle_request(prompt, "models/gemini-1.5-pro-latest", API_URL_PRO)
