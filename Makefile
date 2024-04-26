@@ -13,4 +13,4 @@ rebuild:
 
 redis:
 	docker pull redis:latest
-	docker run --name redis -p 6011:6379 -e REDIS_PASSWORD=123456 -d redis /bin/sh -c 'redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}'
+	docker run --name redis -p 6011:6379 -e REDIS_PASSWORD=123456 -d redis /bin/sh -c 'redis-server --appendonly yes --requirepass $${REDIS_PASSWORD}'
