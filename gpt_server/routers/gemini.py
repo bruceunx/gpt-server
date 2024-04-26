@@ -1,9 +1,13 @@
 from typing import Any
+from datetime import datetime, timedelta
 import json
+from functools import wraps
 
 from fastapi import APIRouter, Request
+from pydantic_settings import BaseSettings
 from sse_starlette import EventSourceResponse
 import aiohttp
+from redis.asyncio import Redis
 
 from .._config import APIs
 
@@ -14,27 +18,43 @@ router = APIRouter()
 API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:streamGenerateContent?alt=sse&key={APIs['gemini']}"
 
 
-async def get_content(data):
-    async with aiohttp.ClientSession() as sess:
-        async with sess.post(API_URL, json=data, proxy=APIs["proxy"]) as res:
-            async for chunk in res.content:
-                _data = chunk.decode("utf-8")
-                if _data.strip() != "":
-                    data = json.loads(_data[6:])
-                    send_data = dict(choices=[{
-                        "index": 0,
-                        "delta": {
-                            "content":
-                            data["candidates"][0]["content"]["parts"][0]
-                            ["text"]
-                        }
-                    }])
-                    yield json.dumps(send_data)
-            yield "[DONE]"
+class Settings(BaseSettings):
+    redis_password: str = APIs["redis_password"]
+    redis_host: str = APIs["redis"]
+    redis_port: int = int(APIs["redis_port"])
+    rate_limit_per_minute: int = 2
 
 
-@router.post("/chat", status_code=200)
-async def chat(request: Request, prompt: Prompt):
+settings = Settings()
+
+redis_client = Redis(
+    host=settings.redis_host,
+    port=settings.redis_port,
+    db=0,
+    decode_responses=True,
+    password=settings.redis_password,
+)
+
+
+async def rate_limit(rate_limit: int) -> bool:
+    """
+    Apply rate limiting per minute
+    """
+    now = datetime.now()
+    current_minute = now.strftime("%Y-%m-%dT%H:%M")
+
+    redis_key = f"rate_limit_{current_minute}"
+    current_count = await redis_client.incr(redis_key)
+
+    if current_count == 1:
+        await redis_client.expireat(name=redis_key,
+                                    when=now + timedelta(minutes=1))
+    if current_count > rate_limit:
+        return False
+    return True
+
+
+def handle_request(prompt: Prompt, model: str):
     contents: list[Any] = []
     sys_message = None
     less_messages = []
@@ -62,5 +82,52 @@ async def chat(request: Request, prompt: Prompt):
     return EventSourceResponse(
         get_content({
             "contents": contents,
-            # "model": "models/gemini-pro"
+            "model": model
         }))
+
+
+def check_limit(func):
+
+    @wraps(func)
+    async def wrapper(request: Request, *args, **kwargs):
+        is_allowed = await rate_limit(settings.rate_limit_per_minute)
+        if is_allowed:
+            return await chat_pro(request, *args, **kwargs)
+        return await func(request, *args, **kwargs)
+
+    return wrapper
+
+
+# limiter = FastAPILimiter(key_func=GetlavaExtractor())
+async def get_content(data):
+    async with aiohttp.ClientSession() as sess:
+        async with sess.post(API_URL, json=data, proxy=APIs["proxy"]) as res:
+            async for chunk in res.content:
+                _data = chunk.decode("utf-8")
+                if _data.strip() != "":
+                    try:
+                        data = json.loads(_data[6:])
+                        send_data = dict(choices=[{
+                            "index": 0,
+                            "delta": {
+                                "content":
+                                data["candidates"][0]["content"]["parts"][0]
+                                ["text"]
+                            }
+                        }])
+                        yield json.dumps(send_data)
+                    except Exception:
+                        yield '{"choices":[{"index":0,"delta":{"content":"error from gemini"}}]}'
+                        yield "[DONE]"
+                        break
+
+
+@router.post("/chat", status_code=200)
+@check_limit
+async def chat(request: Request, prompt: Prompt):
+    return handle_request(prompt, "models/gemini-1.0-pro")
+
+
+# @router.post("/chat_pro", status_code=200)
+async def chat_pro(request: Request, prompt: Prompt):
+    return handle_request(prompt, "models/gemini-1.5-pro-latest")

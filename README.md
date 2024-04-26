@@ -4,6 +4,30 @@
 
 > Make sure `make` is installed in your system, or your should run command in `Makefile` manually.
 
+## Add Support for Auto Switch between Gemini Pro 1.5 and Gemini Pro 1.0
+
+## Pre-Requirements
+
+> Make sure you have `docker`.
+
+### Change password in your Makefile for redis server
+
+```makefile
+# change password
+    docker run --name redis -p 6379:6379 -e REDIS_PASSWORD=123456 -d redis /bin/sh -c 'redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}'
+```
+
+### personal information file .person in root
+
+```sh
+groq=<YOUR API KEY>
+gemini=<YOUR API KEY>
+proxy=<YOUR PROXY>
+redis=<REDIS URL>
+redis_port=<REDIS Port>
+redis_password=<REDIS PASSWORD>
+```
+
 ## Install Dependencies and Run Server
 
 ```sh

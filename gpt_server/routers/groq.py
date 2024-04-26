@@ -23,6 +23,10 @@ async def get_content(data):
             async for chunk in res.content:
                 if chunk:
                     yield chunk.decode("utf-8")[6:]
+                else:
+                    yield '{"choices":[{"index":0,"delta":{"content":" handle"}}]}'
+                    yield "[DONE]"
+                    break
 
 
 async def generate_data():
