@@ -1,25 +1,26 @@
-import asyncio
+import os
 
 from fastapi import APIRouter, Request
 from sse_starlette import EventSourceResponse
 import aiohttp
 
 from gpt_server.schemas.prompt import Prompt
-from .._config import APIs
 
 router = APIRouter()
 
 url = "https://api.groq.com/openai/v1/chat/completions"
 
 headers = {
-    "Authorization": f"Bearer {APIs['groq']}",
+    "Authorization": f"Bearer {os.environ['GROQ_KEY']}",
     "Content-Type": "application/json",
 }
+
+PROXY = os.environ['proxy'] if 'proxy' in os.environ else None
 
 
 async def get_content(data):
     async with aiohttp.ClientSession(headers=headers) as sess:
-        async with sess.post(url, json=data, proxy=APIs["proxy"]) as res:
+        async with sess.post(url, json=data, proxy=PROXY) as res:
             async for chunk in res.content:
                 if chunk:
                     yield chunk.decode("utf-8")[6:]
@@ -27,13 +28,6 @@ async def get_content(data):
                     yield '{"choices":[{"index":0,"delta":{"content":" handle"}}]}'
                     yield "[DONE]"
                     break
-
-
-async def generate_data():
-    for i in range(10):
-        await asyncio.sleep(.1)  # Simulate some delay
-        yield '{"choices":[{"index":0,"delta":{"content":" handle"}}]}'
-    yield "[DONE]"
 
 
 @router.post("/chat", status_code=200)

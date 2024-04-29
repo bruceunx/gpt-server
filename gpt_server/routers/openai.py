@@ -1,18 +1,17 @@
-import asyncio
+import os
 
 from fastapi import APIRouter, Request
 from sse_starlette import EventSourceResponse
 import aiohttp
 
 from gpt_server.schemas.prompt import Prompt
-from .._config import APIs
 
 router = APIRouter()
 
 url = "https://api.pumpkinaigc.online/v1/chat/completions"
 
 headers = {
-    "Authorization": f"Bearer {APIs['openai']}",
+    "Authorization": f"Bearer {os.environ['OPENAI_KEY']}",
     "Content-Type": "application/json",
 }
 
@@ -27,13 +26,6 @@ async def get_content(data):
                     yield '{"choices":[{"index":0,"delta":{"content":"error from openai"}}]}'
                     yield "[DONE]"
                     break
-
-
-async def generate_data():
-    for i in range(10):
-        await asyncio.sleep(.1)  # Simulate some delay
-        yield '{"choices":[{"index":0,"delta":{"content":" handle"}}]}'
-    yield "[DONE]"
 
 
 @router.post("/chat", status_code=200)

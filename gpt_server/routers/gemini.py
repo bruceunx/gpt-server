@@ -2,6 +2,7 @@ from typing import Any
 from datetime import datetime, timedelta
 import json
 from functools import wraps
+import os
 
 from fastapi import APIRouter, Request
 from pydantic_settings import BaseSettings
@@ -9,20 +10,21 @@ from sse_starlette import EventSourceResponse
 import aiohttp
 from redis.asyncio import Redis
 
-from .._config import APIs
-
 from gpt_server.schemas.prompt import Prompt
 
 router = APIRouter()
 
-API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:streamGenerateContent?alt=sse&key={APIs['gemini']}"
-API_URL_PRO = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:streamGenerateContent?alt=sse&key={APIs['gemini']}"
+api_key = os.environ['GEMINI_KEY']
+
+API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:streamGenerateContent?alt=sse&key={api_key}"
+API_URL_PRO = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:streamGenerateContent?alt=sse&key={api_key}"
+
+PROXY = os.environ['proxy'] if 'proxy' in os.environ else None
 
 
 class Settings(BaseSettings):
-    redis_password: str = APIs["redis_password"]
-    redis_host: str = APIs["redis"]
-    redis_port: int = int(APIs["redis_port"])
+    redis_host: str = os.environ['REDIS_HOST']
+    redis_port: int = int(os.environ['REDIS_PORT'])
     rate_limit_per_minute: int = 2
 
 
@@ -33,7 +35,6 @@ redis_client = Redis(
     port=settings.redis_port,
     db=0,
     decode_responses=True,
-    password=settings.redis_password,
 )
 
 
@@ -101,7 +102,7 @@ def check_limit(func):
 
 async def get_content(data, url):
     async with aiohttp.ClientSession() as sess:
-        async with sess.post(url, json=data, proxy=APIs["proxy"]) as res:
+        async with sess.post(url, json=data, proxy=PROXY) as res:
             async for chunk in res.content:
                 _data = chunk.decode("utf-8")
                 if _data.strip() != "":
