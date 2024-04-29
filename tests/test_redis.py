@@ -1,6 +1,6 @@
 import redis
 
-redis_client = redis.Redis(host='', port=000, db=0, password="")
+redis_client = redis.Redis(host='172.232.237.13', port=6011, db=0)
 
 try:
     redis_client.ping()
