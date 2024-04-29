@@ -119,8 +119,8 @@ async def get_content(data, url):
                         yield json.dumps(send_data)
                     except Exception:
                         yield '{"choices":[{"index":0,"delta":{"content":"error from gemini"}}]}'
-                        yield "[DONE]"
                         break
+            yield "[DONE]"
 
 
 @router.post("/chat", status_code=200)
