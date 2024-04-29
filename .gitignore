@@ -2,6 +2,8 @@
 
 **/*.py[cdo]
 **/__pycache__
+.venv/
+.mypy_cache
 
 .person
 .sync.json
