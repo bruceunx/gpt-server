@@ -2,7 +2,8 @@ name: build image
 
 on:
   push:
-    tags: [v\d+\.\d+\.\d+]
+    branches:
+      - main
 
 jobs:
   build-and-push:

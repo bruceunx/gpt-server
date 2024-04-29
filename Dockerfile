@@ -6,6 +6,5 @@ COPY requirements.txt requirements.txt
 
 RUN pip install -r requirements.txt --no-cache-dir
 
-COPY ./gpt_server /app
+COPY ./gpt_server /app/gpt_server
 
-CMD ["uvicorn", "gpt_server:app", "--host", "0.0.0.0", "--port", "8000"]
