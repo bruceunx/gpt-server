@@ -25,6 +25,7 @@ PROXY = os.environ['proxy'] if 'proxy' in os.environ else None
 class Settings(BaseSettings):
     redis_host: str = os.environ['REDIS_HOST']
     redis_port: int = int(os.environ['REDIS_PORT'])
+    redis_password: str = os.environ['REDIS_PASSWORD']
     rate_limit_per_minute: int = 2
 
 
@@ -33,6 +34,7 @@ settings = Settings()
 redis_client = Redis(
     host=settings.redis_host,
     port=settings.redis_port,
+    password=settings.redis_password,
     db=0,
     decode_responses=True,
 )
