@@ -21,12 +21,16 @@ headers = {
 
 
 async def get_content(data):
+    signal = False
     async with aiohttp.ClientSession(headers=headers) as sess:
         async with sess.post(url, json=data) as res:
             async for chunk in res.content:
                 if chunk:
                     tmp = json.loads(chunk.decode("utf-8"))
+                    if 'text' not in tmp:
+                        continue
                     if tmp["is_finished"]:
+                        signal = True
                         yield "[DONE]"
                     else:
                         yield json.dumps({
@@ -41,6 +45,8 @@ async def get_content(data):
                     yield '{"choices":[{"index":0,"delta":{"content":"error from claude"}}]}'
                     yield "[DONE]"
                     break
+            if not signal:
+                yield "[DONE]"
 
 
 @router.post("/chat", status_code=200)
