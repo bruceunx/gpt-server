@@ -8,7 +8,7 @@ from gpt_server.schemas.prompt import Prompt
 
 router = APIRouter()
 
-url = "https://api.groq.com/openai/v1/chat/completions"
+url = os.environ['GROQ_URL']
 
 headers = {
     "Authorization": f"Bearer {os.environ['GROQ_KEY']}",

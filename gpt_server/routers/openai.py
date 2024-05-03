@@ -8,7 +8,7 @@ from gpt_server.schemas.prompt import Prompt
 
 router = APIRouter()
 
-url = "https://api.pumpkinaigc.online/v1/chat/completions"
+url = os.environ['OPENAI_URL']
 
 headers = {
     "Authorization": f"Bearer {os.environ['OPENAI_KEY']}",

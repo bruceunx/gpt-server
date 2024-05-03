@@ -12,7 +12,7 @@ router = APIRouter()
 
 api_key = os.environ['COHERE_KEY']
 
-url = "https://api.cohere.ai/v1/chat"
+url = os.environ['COHERE_URL']
 
 headers = {
     "Authorization": f"Bearer {api_key}",

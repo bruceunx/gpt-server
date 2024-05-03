@@ -16,8 +16,8 @@ router = APIRouter()
 
 api_key = os.environ['GEMINI_KEY']
 
-API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:streamGenerateContent?alt=sse&key={api_key}"
-API_URL_PRO = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:streamGenerateContent?alt=sse&key={api_key}"
+API_URL = f"{os.environ['GEMINI_URL']}?alt=sse&key={api_key}"
+API_URL_PRO = f"{os.environ['GEMINI_PRO_URL']}?alt=sse&key={api_key}"
 
 PROXY = os.environ['proxy'] if 'proxy' in os.environ else None
 
