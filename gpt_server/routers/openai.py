@@ -10,6 +10,8 @@ router = APIRouter()
 
 url = os.environ['OPENAI_URL']
 
+subscription_url = os.environ.get("OPENAI_SUBSCRIPTION_URL", None)
+
 headers = {
     "Authorization": f"Bearer {os.environ['OPENAI_KEY']}",
     "Content-Type": "application/json",
@@ -39,3 +41,14 @@ async def chat(request: Request, prompt: Prompt):
         less_messages = prompt.messages[1:]
     data["messages"] = [dict(msg) for msg in less_messages]
     return EventSourceResponse(get_content(data))
+
+
+@router.post("/state", status_code=200)
+async def state(request: Request, prompt: Prompt):
+    async with aiohttp.ClientSession(headers=headers) as sess:
+        if subscription_url:
+            async with sess.get(subscription_url) as res:
+                data = await res.json()
+                value = data["remain_quota"]
+                return {"remain_token": value}
+    return {"remain_token": 0}
