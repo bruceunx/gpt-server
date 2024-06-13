@@ -128,8 +128,8 @@ async def get_content(data, url):
 @router.post("/chat", status_code=200)
 @check_limit
 async def chat(request: Request, prompt: Prompt):
-    return handle_request(prompt, "models/gemini-1.0-pro", API_URL)
+    return handle_request(prompt, "models/gemini-1.5-flash", API_URL)
 
 
 async def chat_pro(request: Request, prompt: Prompt):
-    return handle_request(prompt, "models/gemini-1.5-pro-latest", API_URL_PRO)
+    return handle_request(prompt, "models/gemini-1.5-pro", API_URL_PRO)
