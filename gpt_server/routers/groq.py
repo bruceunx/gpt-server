@@ -33,7 +33,7 @@ async def get_content(data):
 @router.post("/chat", status_code=200)
 async def chat(request: Request, prompt: Prompt):
 
-    data = {"model": "llama3-70b-8192", "stream": True}
+    data = {"model": "llama-3.1-70b-versatile", "stream": True}
     less_messages = []
     if len(prompt.messages) > 4:
         less_messages = [prompt.messages[0]] + prompt.messages[-3:]
